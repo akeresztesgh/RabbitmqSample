@@ -1,10 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Sender
 {
@@ -25,7 +21,6 @@ namespace Sender
             var factory = new ConnectionFactory() { HostName = "localhost" };
             factory.UserName = "guest";
             factory.Password = "guest";
-            //factory.Port = settings.RabbitMqPort;
 
             using (var connection = factory.CreateConnection())
             {
