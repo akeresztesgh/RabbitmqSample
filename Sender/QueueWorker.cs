@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
+using Shared;
 using System.Text;
+using System.Text.Json;
 
 namespace Sender
 {
@@ -15,7 +17,10 @@ namespace Sender
 
         private void OnTimer(object? state)
         {
-            var payload = $"on timer {DateTime.Now}";
+            var payload = new Payload()
+            {
+                Message = $"on timer {DateTime.Now}"
+            };
 
             var queueName = "SampleQueue";
             var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -34,7 +39,7 @@ namespace Sender
                     var properties = channel.CreateBasicProperties();
                     properties.Persistent = true;
 
-                    var body = Encoding.UTF8.GetBytes(payload);
+                    var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
                     channel.BasicPublish(exchange: string.Empty,
                         routingKey: queueName,
                         basicProperties: properties,

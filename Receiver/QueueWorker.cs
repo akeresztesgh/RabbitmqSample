@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Shared;
 using System.Text;
+using System.Text.Json;
 
 namespace Receiver
 {
@@ -35,7 +37,8 @@ namespace Receiver
 
         private Task Execute(object sender, BasicDeliverEventArgs @event)
         {
-            Console.WriteLine("Received: " + Encoding.UTF8.GetString(@event.Body.ToArray()));
+            var payload = JsonSerializer.Deserialize<Payload>(Encoding.UTF8.GetString(@event.Body.ToArray()));
+            Console.WriteLine("Received: " + payload.Message);
             channel.BasicAck(deliveryTag: @event.DeliveryTag, multiple: false);
             return Task.CompletedTask;
         }
