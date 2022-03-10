@@ -10,6 +10,7 @@ namespace Receiver
     internal class QueueWorker : BackgroundService
     {
         private IModel channel;
+        private IConnection connection;
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -19,7 +20,7 @@ namespace Receiver
 
             var queueName = "SampleQueue";
 
-            var connection = factory.CreateConnection();
+            connection = factory.CreateConnection();
             channel = connection.CreateModel();
             channel.QueueDeclare(queue: queueName,
                                  durable: true,
@@ -28,14 +29,14 @@ namespace Receiver
                                  arguments: null);
             channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
             var consumer = new AsyncEventingBasicConsumer(channel);
-            consumer.Received += Execute;
+            consumer.Received += ReceiveData;
             channel.BasicConsume(queue: queueName,
                      autoAck: false,
                      consumer: consumer);
             return Task.CompletedTask;
         }
 
-        private Task Execute(object sender, BasicDeliverEventArgs @event)
+        private Task ReceiveData(object sender, BasicDeliverEventArgs @event)
         {
             var payload = JsonSerializer.Deserialize<Payload>(Encoding.UTF8.GetString(@event.Body.ToArray()));
             Console.WriteLine("Received: " + payload.Message);
@@ -43,5 +44,13 @@ namespace Receiver
             return Task.CompletedTask;
         }
 
+        ~QueueWorker()
+        {
+            channel.Close();
+            connection.Close();
+            channel.Dispose();
+            connection.Dispose();
+
+        }
     }
 }
